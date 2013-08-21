@@ -1,0 +1,20 @@
+{
+    "name": "itsgoingd/clockwork-web",
+    "description": "Embeddable webapp version of Clockwork, a Chrome extension for PHP development",
+    "keywords": ["debugging", "profiling", "logging"],
+    "homepage": "http://github.com/itsgoingd/clockwork-web",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "itsgoingd",
+            "email": "itsgoingd@luzer.sk",
+            "homepage": "http://twitter.com/itsgoingd"
+        }
+    ],
+    "require": {
+        "php": ">=5.3.0"
+    },
+    "autoload": {
+        "psr-0": {"Clockwork": ""}
+    }
+}

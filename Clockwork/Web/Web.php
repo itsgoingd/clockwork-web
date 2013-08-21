@@ -40,7 +40,7 @@ class Web
 	{
 		$path = realpath(__DIR__ . '/public/' . $path);
 
-		if (strpos($path, __DIR__ . '/public/') !== 0)
+		if (strpos($path, __DIR__ . DIRECTORY_SEPARATOR . 'public' . DIRECTORY_SEPARATOR) === false)
 			return;
 
 		if (file_exists($path))

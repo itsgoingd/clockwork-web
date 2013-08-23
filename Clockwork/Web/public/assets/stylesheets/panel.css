@@ -5,7 +5,8 @@
 }
 
 body {
-	font-family: Lucida Grande, sans-serif;
+	background: #fff;
+	font-family: 'Lucida Grande', 'Lucida Sans Unicode', sans-serif;
 }
 
 .data-grid {
@@ -154,8 +155,12 @@ td.view, td.other, td.duration {
 	border-right: none;
 }
 
-.header th {
-	background: linear-gradient(to bottom, #ececec 0%,#d9d9d9 100%);
+.header th, .tabbed-pane-header {
+	background: #ececec;
+	background-image: -webkit-linear-gradient(top, #ececec 0%, #d9d9d9 100%);
+	background-image: -moz-linear-gradient(top, #ececec 0%, #d9d9d9 100%);
+	background-image: -o-linear-gradient(top, #ececec 0%, #d9d9d9 100%);
+	background-image: linear-gradient(to bottom, #ececec 0%, #d9d9d9 100%);
 }
 
 .method, .format, .status, .view, .other {
@@ -175,7 +180,10 @@ td.view, td.other, td.duration {
 }
 
 .timeline-graph {
-	background-image: linear-gradient(90deg, transparent 99.5%, rgb(229, 229, 229) 99.5%, rgb(229, 229, 229) 100%);
+	background-image: -webkit-linear-gradient(left, transparent 99.5%, #e5e5e5 99.5%, #e5e5e5 100%);
+	background-image: -moz-linear-gradient(left, transparent 99.5%, #e5e5e5 99.5%, #e5e5e5 100%);
+	background-image: -o-linear-gradient(left, transparent 99.5%, #e5e5e5 99.5%, #e5e5e5 100%);
+	background-image: linear-gradient(to right, transparent 99.5%, #e5e5e5 99.5%, #e5e5e5 100%);
 	background-size: 80px 1px;
 }
 
@@ -277,7 +285,6 @@ th.timeline-duration, th.timeline-description {
 	padding-top: 7px;
 	padding-left: 25px;
 	white-space: nowrap;
-	background: linear-gradient(to bottom, #ececec 0%,#d9d9d9 100%);
 	border-bottom: 1px solid #A3A3A3;
 }
 

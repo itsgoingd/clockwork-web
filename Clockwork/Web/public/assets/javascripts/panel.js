@@ -48,14 +48,30 @@ Clockwork.controller('PanelController', function PanelController($scope, $http)
 			headers = request.response.headers;
 			var requestId = headers.find(function(x) { return x.name == 'X-Clockwork-Id'; });
 			var requestVersion = headers.find(function(x) { return x.name == 'X-Clockwork-Version'; });
+            var requestPath = headers.find(function(x) { return x.name == 'X-Clockwork-Path'; });
+
+			var requestHeaders = {};
+			$.each(headers, function(i, header) {
+				if (header.name.indexOf('X-Clockwork-Header-') === 0) {
+					originalName = header.name.replace('X-Clockwork-Header-', '');
+					requestHeaders[originalName] = header.value;
+				}
+			});
 
 			if (requestVersion !== undefined) {
 				var uri = new URI(request.request.url);
-				var path = '/__clockwork/' + requestId.value;
-				uri.pathname(path);
+				var path = ((requestPath) ? requestPath.value : '/__clockwork/') + requestId.value;
 
-				$http.get(uri.toString()).success(function(data){
-					$scope.addRequest(getParams['id'], data);
+				path = path.split('?');
+				uri.pathname(path[0]);
+				if (path[1]) {
+					uri.query(path[1]);
+				}
+
+				chrome.extension.sendRequest({action: 'getJSON', url: uri.toString(), headers: requestHeaders}, function(data){
+					$scope.$apply(function(){
+						$scope.addRequest(requestId.value, data);
+					});
 				});
 			}
 		});
@@ -133,7 +149,7 @@ Clockwork.controller('PanelController', function PanelController($scope, $http)
 		$scope.activeRequest = $scope.requests[requestId];
 		$scope.activeRoutes = $scope.requests[requestId].routes;
 		$scope.activeSessionData = $scope.requests[requestId].sessionData;
-		$scope.activeTimeline = $scope.requests[requestId].timelineData;
+		$scope.activeTimeline = $scope.requests[requestId].timeline;
 		$scope.activeTimelineLegend = $scope.generateTimelineLegend();
 	};
 
@@ -149,6 +165,10 @@ Clockwork.controller('PanelController', function PanelController($scope, $http)
 	$scope.createKeypairs = function(data)
 	{
 		var keypairs = [];
+
+		if (!(data instanceof Object)) {
+			return keypairs;
+		}
 
 		$.each(data, function(key, value){
 			keypairs.push({name: key, value: value});
@@ -201,10 +221,7 @@ Clockwork.controller('PanelController', function PanelController($scope, $http)
 
 	$scope.processLog = function(data)
 	{
-		var levels = { 1: 'DEBUG', 2: 'INFO', 3: 'NOTICE', 4: 'WARNING', 5: 'ERROR' };
-
 		$.each(data, function(key, value) {
-			value.level = levels[value.level];
 			value.time = new Date(value.time * 1000);
 		});
 
@@ -215,6 +232,8 @@ Clockwork.controller('PanelController', function PanelController($scope, $http)
 	{
 		var j = 1;
 		var maxWidth = $('.data-grid-details').width() - 230 - 20;
+
+		var timeline = [];
 
 		$.each(data.timelineData, function(i, value){
 			value.style = 'style' + j.toString();
@@ -227,11 +246,16 @@ Clockwork.controller('PanelController', function PanelController($scope, $http)
 				value.durationRounded = '< 1';
 			}
 
-			j++;
-			if (j > 3) j = 1;
+			if (i == 'total') {
+				timeline.unshift(value);
+			} else {
+				timeline.push(value);
+			}
+
+			if (++j > 3) j = 1;
 		});
 
-		return data.timelineData;
+		return timeline;
 	};
 
 	angular.element(window).bind('resize', function() {

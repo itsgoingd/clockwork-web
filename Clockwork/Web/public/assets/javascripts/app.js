@@ -1,16 +1,39 @@
-var Clockwork = angular.module('Clockwork', ['ngSanitize'])
-	.filter('prettifyJson', function() {
-		return function(input) {
-			$escape = $('<div>');
+var Clockwork = angular.module('Clockwork', [])
+	.directive('prettyPrint', function ($parse) {
+		return {
+			restrict: 'E',
+			replace: true,
+			transclude: false,
+			scope: { data: '=data' },
+			link: function (scope, element, attrs) {
+				var data = scope.data;
+				var jason;
 
-			if (input instanceof Object) {
-				$escape.text(JSON.stringify(input, undefined, 4));
-				return $escape.text()
-					.replace(/^ */gm, function(s){ return new Array(s.length + 1).join('&nbsp;'); })
-					.replace(/\n/g, '<br>');
-			} else {
-				$escape.text(input);
-				return $escape.text();
+				if (data === true) {
+					data = '<i>true</i>';
+				} else if (data === false) {
+					data = '<i>false</i>';
+				} else if (data === undefined) {
+					data = '<i>undefined</i>';
+				} else if (data === null) {
+					data = '<i>null</i>';
+				} else if (typeof data !== 'number') {
+					try {
+						jason = new PrettyJason(data);
+					} catch(e) {
+						data = $('<div>').text(data).html();
+					}
+				}
+
+				var $el = $('<div></div>');
+
+				if (jason) {
+					$el.append(jason.generateHtml());
+				} else {
+					$el.html(data);
+				}
+
+				element.replaceWith($el);
 			}
 		};
 	});

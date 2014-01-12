@@ -9,46 +9,62 @@ class ClockworkWebServiceProvider extends ServiceProvider
 {
 	public function boot()
 	{
+		$this->package('itsgoingd/clockwork-web', 'clockwork-web', __DIR__);
+
+		if (!$this->isEnabled()) {
+			return; // Clockwork web is disabled, don't register the routes
+		}
+
+		$app = $this->app;
+		$this->app['router']->get('/__clockwork/app', function() use($app)
+		{
+			$app['clockwork.web']->render();
+		});
+
+		$this->app['router']->get('/__clockwork/{path}', function($path = null) use($app)
+		{
+			$app['clockwork.web']->renderAsset($path);
+		})->where('path', '.+');
 	}
 
 	public function register()
 	{
-		$this->app['config']->package('itsgoingd/clockwork-web', __DIR__ . '/config');
-
-		$isEnabled = $this->app['config']->get('clockwork-web::enable');
-		if ($isEnabled === null) {
-			$isEnabled = $this->app['config']->get('clockwork::enable');
-		}
-		if ($isEnabled === null) {
-			$isEnabled = $this->app['config']->get('app.debug');
-		}
-
-		$this->app['clockwork.web'] = $this->app->share(function($app){
-			return new ClockworkWeb();
+		$this->app->singleton('clockwork.web', function($app)
+		{
+			return new ClockworkWeb();			
 		});
 
-		if (!$isEnabled) {
-			return; // Don't bother registering the routes and callbacks
-		}
-
 		$app = $this->app;
-		$this->app->before(function($request) use($app){
+		$service = $this;
+		$this->app->before(function($request) use($app, $service)
+		{
+			if (!$service->isEnabled()) {
+				return;
+			}
+
 			$app['clockwork.web']->setCurrentRequestId($app['clockwork']->getRequest()->id);
 
 			$app['view']->share('clockwork_web', $app['clockwork.web']->getIframe());
 		});
-
-		$this->app['router']->get('/__clockwork/app', function() use($app){
-			$app['clockwork.web']->render();
-		});
-
-		$this->app['router']->get('/__clockwork/{path}', function($path = null) use($app){
-			$app['clockwork.web']->renderAsset($path);
-		})->where('path', '.+');
 	}
 
 	public function provides()
 	{
 		return array('clockwork-web');
+	}
+
+	private function isEnabled()
+	{
+		$is_enabled = $this->app['config']->get('clockwork-web::config.enable');
+
+		if ($is_enabled === null) {
+			$is_enabled = $this->app['config']->get('clockwork::config.enable');
+		}
+
+		if ($is_enabled === null) {
+			$is_enabled = $this->app['config']->get('app.debug');
+		}
+
+		return $is_enabled;
 	}
 }

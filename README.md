@@ -12,7 +12,7 @@ This extension provides out of the box support for Laravel 4 and Slim 2 framewor
 To install the latest version simply add it to your `composer.json`:
 
 ```javascript
-"itsgoingd/clockwork-web": "dev-master"
+"itsgoingd/clockwork-web": "1.*"
 ```
 
 ### Laravel 4

@@ -44,10 +44,9 @@ Clockwork.controller('PanelController', function PanelController($scope, $http)
 			});
 		});
 
-		chrome.devtools.network.onRequestFinished.addListener(function(request) {
-			console.log(request);
-
-			headers = request.response.headers;
+		chrome.devtools.network.onRequestFinished.addListener(function(request)
+		{
+			var headers = request.response.headers;
 			var requestId = headers.find(function(x) { return x.name == 'X-Clockwork-Id'; });
 			var requestVersion = headers.find(function(x) { return x.name == 'X-Clockwork-Version'; });
             var requestPath = headers.find(function(x) { return x.name == 'X-Clockwork-Path'; });
@@ -169,6 +168,18 @@ Clockwork.controller('PanelController', function PanelController($scope, $http)
 			return '';
 		}
 	};
+
+	$scope.showDatabaseConnectionColumn = function()
+	{
+		var connections = {};
+
+		$scope.activeDatabaseQueries.forEach(function(query)
+		{
+			connections[query.connection] = true;
+		});
+
+		return Object.keys(connections).length > 1;
+	}
 
 	$scope.createKeypairs = function(data)
 	{

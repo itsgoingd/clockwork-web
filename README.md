@@ -7,21 +7,21 @@ This repository contains embeddable webapp version of Clockwork, supporting many
 
 ## Installation
 
-This extension provides out of the box support for Laravel 4 and Slim 2 frameworks, you can add support for any other or custom framework via an extensible API.
+This extension provides out of the box support for Laravel and Slim 2 frameworks, you can add support for any other or custom framework via an extensible API.
 
 To install the latest version simply add it to your `composer.json`:
 
 ```javascript
-"itsgoingd/clockwork-web": "1.*"
+"itsgoingd/clockwork-web": "~1.3"
 ```
 
-### Laravel 4
+### Laravel
 
 Once Clockwork is installed, you need to register the Laravel service provider, in your `app/config/app.php`:
 
 ```php
 'providers' => array(
-	...    
+	...
     'Clockwork\Web\Support\Laravel\ClockworkWebServiceProvider'
 )
 ```
@@ -29,10 +29,30 @@ Once Clockwork is installed, you need to register the Laravel service provider, 
 By default, Clockwork will only be available in debug mode, you can change this and other settings in the configuration file. Use the following Artisan command to publish the configuration file into your config directory:
 
 ```
+$ php artisan vendor:publish --provider='Clockwork\Web\Support\Laravel\ClockworkServiceProvider'
+```
+
+For Laravel 4 you can do the same with this command:
+
+```
 $ php artisan config:publish itsgoingd/clockwork-web --path vendor/itsgoingd/clockwork-web/Clockwork/Web/Support/Laravel/config/
 ```
 
-When the service provider is registered, a variable "clockwork_web" will be available in your views, you should output it in your layout template, ideally just before body closing tag.
+When the service provider is registered, a variable "clockwork_web" will be available in your views, you should output it in your layout template as raw html, ideally just before body closing tag.
+
+```html
+...
+{!! $clockwork_web !!}
+</body>
+```
+
+For Laravel 4:
+
+```html
+...
+{{ $clockwork_web }}
+</body>
+```
 
 ### Slim 2
 
@@ -44,6 +64,12 @@ $app->add(new Clockwork\Web\Support\Slim\ClockworkWebMiddleware());
 ```
 
 When the middleware is registered, a variable "clockwork_web" will be available in your views, you should output it in your layout template, ideally just before body closing tag.
+
+```html
+...
+<?= $clockwork_web ?>
+</body>
+```
 
 ## Licence
 

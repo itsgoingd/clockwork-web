@@ -29,7 +29,7 @@ Once Clockwork is installed, you need to register the Laravel service provider, 
 By default, Clockwork will only be available in debug mode, you can change this and other settings in the configuration file. Use the following Artisan command to publish the configuration file into your config directory:
 
 ```
-$ php artisan vendor:publish --provider='Clockwork\Web\Support\Laravel\ClockworkServiceProvider'
+$ php artisan vendor:publish --provider='Clockwork\Web\Support\Laravel\ClockworkWebServiceProvider'
 ```
 
 For Laravel 4 you can do the same with this command:

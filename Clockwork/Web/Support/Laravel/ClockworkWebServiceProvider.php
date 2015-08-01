@@ -1,47 +1,58 @@
-<?php
-namespace Clockwork\Web\Support\Laravel;
+<?php namespace Clockwork\Web\Support\Laravel;
 
-use Clockwork\Web\Web as ClockworkWeb;
 use Clockwork\Clockwork;
+use Clockwork\Web\Web as ClockworkWeb;
+
+use Illuminate\Foundation\Application;
 use Illuminate\Support\ServiceProvider;
+use Illuminate\Support\Str;
 
 class ClockworkWebServiceProvider extends ServiceProvider
 {
 	public function boot()
 	{
-		$this->package('itsgoingd/clockwork-web', 'clockwork-web', __DIR__);
-
-		if (!$this->isEnabled()) {
-			return; // Clockwork web is disabled, don't register the routes
+		if (!$this->app['clockwork.web.support']->isEnabled()) {
+			return; // Clockwork Web is disabled, don't register the routes
 		}
 
-		$app = $this->app;
-		$this->app['router']->get('/__clockwork/app', function() use($app)
-		{
-			$app['clockwork.web']->render();
-		});
-
-		$this->app['router']->get('/__clockwork/{path}', function($path = null) use($app)
-		{
-			$app['clockwork.web']->renderAsset($path);
-		})->where('path', '.+');
+		if ($this->isLegacyLaravel()) {
+			$this->app['router']->get('/__clockwork/app', 'Clockwork\Web\Support\Laravel\Controllers\LegacyController@render');
+			$this->app['router']->get('/__clockwork/{path}', 'Clockwork\Web\Support\Laravel\Controllers\LegacyController@renderAsset')->where('path', '.+');
+		} elseif ($this->isOldLaravel()) {
+			$this->app['router']->get('/__clockwork/app', 'Clockwork\Web\Support\Laravel\Controllers\OldController@render');
+			$this->app['router']->get('/__clockwork/{path}', 'Clockwork\Web\Support\Laravel\Controllers\OldController@renderAsset')->where('path', '.+');
+		} else {
+			$this->app['router']->get('/__clockwork/app', 'Clockwork\Web\Support\Laravel\Controllers\CurrentController@render');
+			$this->app['router']->get('/__clockwork/{path}', 'Clockwork\Web\Support\Laravel\Controllers\CurrentController@renderAsset')->where('path', '.+');
+		}
 	}
 
 	public function register()
 	{
-		$this->app->singleton('clockwork.web', function($app)
+		if ($this->isLegacyLaravel() || $this->isOldLaravel()) {
+			$this->package('itsgoingd/clockwork-web', 'clockwork-web', __DIR__);
+		} else {
+			$this->publishes(array(__DIR__ . '/config/clockwork-web.php' => config_path('clockwork-web.php')));
+		}
+
+		$legacy = $this->isLegacyLaravel() || $this->isOldLaravel();
+		$this->app->singleton('clockwork.web.support', function($app) use($legacy)
 		{
-			return new ClockworkWeb();			
+			return new ClockworkWebSupport($app, $legacy);
 		});
 
-		$app = $this->app;
-		$service = $this;
-		$this->app->before(function($request) use($app, $service)
+		$this->app->singleton('clockwork.web', function($app)
 		{
-			if (!$service->isEnabled()) {
-				return;
-			}
+			return new ClockworkWeb();
+		});
 
+		if (!$this->app['clockwork.web.support']->isEnabled()) {
+			return;
+		}
+
+		$app = $this->app;
+		$this->app['router']->before(function($request) use($app)
+		{
 			$app['clockwork.web']->setCurrentRequestId($app['clockwork']->getRequest()->id);
 
 			$app['view']->share('clockwork_web', $app['clockwork.web']->getIframe());
@@ -53,18 +64,12 @@ class ClockworkWebServiceProvider extends ServiceProvider
 		return array('clockwork-web');
 	}
 
-	private function isEnabled()
+	public function isLegacyLaravel()
 	{
-		$is_enabled = $this->app['config']->get('clockwork-web::config.enable');
-
-		if ($is_enabled === null) {
-			$is_enabled = $this->app['config']->get('clockwork::config.enable');
-		}
-
-		if ($is_enabled === null) {
-			$is_enabled = $this->app['config']->get('app.debug');
-		}
-
-		return $is_enabled;
+		return Str::startsWith(Application::VERSION, array('4.1.', '4.2.'));
+	}
+	public function isOldLaravel()
+	{
+		return Str::startsWith(Application::VERSION, '4.0.');
 	}
 }

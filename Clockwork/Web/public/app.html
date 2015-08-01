@@ -1,6 +1,8 @@
-<html ng-app="Clockwork" ng-csp="">
+<html ng-csp="">
 	<head>
 		<link rel="stylesheet" type="text/css" href="vendor/assets/stylesheets/pretty-jason.css">
+		<link rel="stylesheet" type="text/css" href="vendor/assets/stylesheets/jquery.resizableColumns.css">
+		<link rel="stylesheet" type="text/css" href="vendor/assets/stylesheets/font-awesome.min.css">
 		<link rel="stylesheet" type="text/css" href="assets/stylesheets/panel.css">
 		<script src="vendor/assets/javascripts/jquery-2.0.2.min.js"></script>
 		<script src="vendor/assets/javascripts/jquery-ui-1.10.3.custom.min.js"></script>
@@ -10,37 +12,58 @@
 		<script src="vendor/assets/javascripts/keymaster.min.js"></script>
 		<script src="vendor/assets/javascripts/angular.min.js"></script>
 		<script src="vendor/assets/javascripts/pretty-jason.js"></script>
+		<script src="vendor/assets/javascripts/jquery.resizableColumns.min.js"></script>
 		<script src="assets/javascripts/app.js"></script>
 		<script src="assets/javascripts/panel.js"></script>
+		<script src="assets/javascripts/toolbar.js"></script>
+		<script src="assets/javascripts/glue-web.js"></script>
 	</head>
 	<body>
 		<div class="split-view" ng-controller='PanelController' ng-init="init('standalone')">
 			<div class="split-view-contents split-view-contents-requests">
 				<div class="data-grid data-grid-requests">
-					<table class="header">
-						<tr>
-							<th class='controller'>
-								Path<br>
-								<small>Controller</small>
-							</th>
-							<th class='method'>Method</th>
-							<th class='status'>Status</th>
-							<th class='duration'>
-								Time<br>
-								<small>Database</small>
-							</th>
-						</tr>
+					<table class="header" id="requests-header" resizable-columns data-resizable-columns-sync="#requests">
+						<thead>
+							<tr>
+								<th class='controller'>
+									Path<br>
+									<small>Controller</small>
+								</th>
+								<th class='method'>Method</th>
+								<th class='status'>Status</th>
+								<th class='duration'>
+									Time<br>
+									<small>Database</small>
+								</th>
+							</tr>
+						</thead>
 					</table>
 					<div class="data-container">
-						<table id="requests">
-							<tr ng-repeat="request in requests" ng-click="setActive(request.id)" ng-class="getClass(request.id)">
-								<td class='controller'>
+						<table id="requests" resizable-columns data-resizable-columns-sync="#requests-header">
+							<tr class="sizing">
+								<td class='controller'></td>
+								<td class='method'></td>
+								<td class='status'></td>
+								<td class='duration'></td>
+							</tr>
+							<tr ng-repeat="request in requests" ng-click="setActive(request.id)" ng-class="getClass(request.id)" scroll-to-new>
+								<td class='controller' title="{{request.uri}} ({{ request.controller}}">
+									<span class="notificationsCount">
+										<span class="errorsCount" ng-show="request.errorsCount">
+											<i class="fa fa-exclamation-circle"></i>
+											{{request.errorsCount}}
+										</span>
+										<span class="warningsCount" ng-show="request.warningsCount">
+											<i class="fa fa-exclamation-triangle"></i>
+											{{request.warningsCount}}
+										</span>
+									</span>
 									{{request.uri}}<br>
 									<small>{{request.controller}}</small>
 								</td>
-								<td class='method'>{{request.method}}</td>
-								<td class='status'>{{request.responseStatus}}</td>
-								<td class='duration'>
+								<td class='method' title="{{request.method}}">{{request.method}}</td>
+								<td class='status' title="{{request.responseStatus}}">{{request.responseStatus}}</td>
+								<td class='duration' title="{{request.responseDurationRounded}} ms ({{request.databaseDurationRounded}} ms)">
 									{{request.responseDurationRounded}} ms<br>
 									<small>{{request.databaseDurationRounded}} ms</small>
 								</td>
@@ -65,10 +88,10 @@
 								<li class="tabbed-pane-header-tab">
 									<a href="#tab-request" class="tabbed-pane-header-tab-title">Request</a>
 								</li>
-								<li class="tabbed-pane-header-tab">
+								<li class="tabbed-pane-header-tab" ng-show="activeTimeline.length">
 									<a href="#tab-timeline" class="tabbed-pane-header-tab-title">Timeline</a>
 								</li>
-								<li class="tabbed-pane-header-tab">
+								<li class="tabbed-pane-header-tab" ng-show="activeLog.length">
 									<a href="#tab-log" class="tabbed-pane-header-tab-title">Log</a>
 								</li>
 								<li class="tabbed-pane-header-tab" ng-show="activeDatabaseQueries.length">
@@ -91,6 +114,9 @@
 								</li>
 							</ul>
 						</div>
+
+						<div class="toolbar"></div>
+
 					</div>
 
 					<div class="tabbed-pane-content data-grid data-grid-details">

@@ -1,4 +1,4 @@
-Clockwork.controller('PanelController', function PanelController($scope, $http)
+Clockwork.controller('PanelController', function PanelController($scope, $http, toolbar)
 {
 	$scope.activeId = null;
 	$scope.requests = {};
@@ -17,27 +17,23 @@ Clockwork.controller('PanelController', function PanelController($scope, $http)
 	$scope.activeTimelineLegend = [];
 	$scope.activeViews = [];
 
+	$scope.showIncomingRequests = true;
+
 	$scope.init = function(type)
 	{
 		$('#tabs').tabs();
-		$('.stupidtable').stupidtable();
 
 		if (type == 'chrome-extension') {
 			$scope.initChrome();
 		} else {
 			$scope.initStandalone();
 		}
+
+		this.createToolbar();
 	};
 
 	$scope.initChrome = function()
 	{
-		var port = chrome.extension.connect({name: "clear"});
-		port.onMessage.addListener(function(msg) {
-			$scope.$apply(function() {
-				$scope.clear();
-			});
-		});
-
 		key('⌘+k, ctrl+l', function() {
 			$scope.$apply(function() {
 				$scope.clear();
@@ -47,14 +43,14 @@ Clockwork.controller('PanelController', function PanelController($scope, $http)
 		chrome.devtools.network.onRequestFinished.addListener(function(request)
 		{
 			var headers = request.response.headers;
-			var requestId = headers.find(function(x) { return x.name == 'X-Clockwork-Id'; });
-			var requestVersion = headers.find(function(x) { return x.name == 'X-Clockwork-Version'; });
-            var requestPath = headers.find(function(x) { return x.name == 'X-Clockwork-Path'; });
+			var requestId = headers.find(function(x) { return x.name.toLowerCase() == 'x-clockwork-id'; });
+			var requestVersion = headers.find(function(x) { return x.name.toLowerCase() == 'x-clockwork-version'; });
+            		var requestPath = headers.find(function(x) { return x.name.toLowerCase() == 'x-clockwork-path'; });
 
 			var requestHeaders = {};
 			$.each(headers, function(i, header) {
-				if (header.name.indexOf('X-Clockwork-Header-') === 0) {
-					originalName = header.name.replace('X-Clockwork-Header-', '');
+				if (header.name.toLowerCase().indexOf('x-clockwork-header-') === 0) {
+					originalName = header.name.toLowerCase().replace('x-clockwork-header-', '');
 					requestHeaders[originalName] = header.value;
 				}
 			});
@@ -100,6 +96,18 @@ Clockwork.controller('PanelController', function PanelController($scope, $http)
 		});
 	};
 
+	$scope.createToolbar = function()
+	{
+		toolbar.createButton('ban', 'Clear', function()
+		{
+			$scope.$apply(function() {
+				$scope.clear();
+			});
+		});
+
+		$('.toolbar').replaceWith(toolbar.render());
+	};
+
 	$scope.addRequest = function(requestId, data)
 	{
 		data.responseDurationRounded = data.responseDuration ? Math.round(data.responseDuration) : 0;
@@ -115,10 +123,14 @@ Clockwork.controller('PanelController', function PanelController($scope, $http)
 		data.timeline = $scope.processTimeline(data);
 		data.views = $scope.processViews(data.viewsData);
 
-		$scope.requests[requestId] = data;
-		$scope.setActive(requestId);
+		data.errorsCount = $scope.getErrorsCount(data);
+		data.warningsCount = $scope.getWarningsCount(data);
 
-		$('.data-container').scrollTop(100000000);
+		$scope.requests[requestId] = data;
+
+		if ($scope.showIncomingRequests) {
+			$scope.setActive(requestId);
+		}
 	};
 
 	$scope.clear = function()
@@ -139,6 +151,8 @@ Clockwork.controller('PanelController', function PanelController($scope, $http)
 		$scope.activeTimeline = [];
 		$scope.activeTimelineLegend = [];
 		$scope.activeViews = [];
+
+		$scope.showIncomingRequests = true;
 	};
 
 	$scope.setActive = function(requestId)
@@ -158,6 +172,10 @@ Clockwork.controller('PanelController', function PanelController($scope, $http)
 		$scope.activeTimeline = $scope.requests[requestId].timeline;
 		$scope.activeTimelineLegend = $scope.generateTimelineLegend();
 		$scope.activeViews = $scope.requests[requestId].views;
+
+		var lastRequestId = Object.keys($scope.requests)[Object.keys($scope.requests).length - 1];
+
+		$scope.showIncomingRequests = requestId == lastRequestId;
 	};
 
 	$scope.getClass = function(requestId)
@@ -179,7 +197,7 @@ Clockwork.controller('PanelController', function PanelController($scope, $http)
 		});
 
 		return Object.keys(connections).length > 1;
-	}
+	};
 
 	$scope.createKeypairs = function(data)
 	{
@@ -243,7 +261,7 @@ Clockwork.controller('PanelController', function PanelController($scope, $http)
 		});
 
 		return emails;
-	}
+	};
 
 	$scope.processHeaders = function(data)
 	{
@@ -330,7 +348,35 @@ Clockwork.controller('PanelController', function PanelController($scope, $http)
 		});
 
 		return views;
-	}
+	};
+
+	$scope.getErrorsCount = function(data)
+	{
+		var count = 0;
+
+		$.each(data.log, function(index, record)
+		{
+			if (record.level == 'error') {
+				count++;
+			}
+		});
+
+		return count;
+	};
+
+	$scope.getWarningsCount = function(data)
+	{
+		var count = 0;
+
+		$.each(data.log, function(index, record)
+		{
+			if (record.level == 'warning') {
+				count++;
+			}
+		});
+
+		return count;
+	};
 
 	angular.element(window).bind('resize', function() {
 		$scope.$apply(function(){

@@ -13,6 +13,9 @@
 	<iframe class="clockwork-web-iframe" id="clockwork-web-iframe" src="/__clockwork/app?id=<?= $currentRequestId ?>"></iframe>
 </div>
 <script>
-document.getElementById('clockwork-web-button').onclick = function(e) { document.getElementById('clockwork-web-wrapper').classList.toggle('clockwork-web-active'); }
+document.getElementById('clockwork-web-button').onclick = function(e) {
+	document.getElementById('clockwork-web-wrapper').classList.toggle('clockwork-web-active');
+	document.getElementById('clockwork-web-iframe').contentWindow.postMessage('initialize', '*');
+}
 </script>
 <!-- Clockwork end -->

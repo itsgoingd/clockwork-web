@@ -36,4 +36,40 @@ var Clockwork = angular.module('Clockwork', [])
 				element.replaceWith($el);
 			}
 		};
+	})
+	.directive('resizableColumns', function ($parse) {
+		return {
+			link: function (scope, element, attrs) {
+				var options = { minWidth: 5 };
+
+				if ($(element).data('resizable-columns-sync')) {
+					var $target = $($(element).data('resizable-columns-sync'));
+
+					$(element).on('column:resize', function(event, resizable, $leftColumn, $rightColumn, widthLeft, widthRight)
+					{
+						var leftColumnIndex = resizable.$table.find('.rc-column-resizing').parent().find('td, th').index($leftColumn);
+
+						var $targetFirstRow = $target.find('tr:first');
+
+						$($targetFirstRow.find('td, th').get(leftColumnIndex)).css('width', widthLeft + '%');
+						$($targetFirstRow.find('td, th').get(leftColumnIndex + 1)).css('width', widthRight + '%');
+
+						$target.data('resizableColumns').syncHandleWidths();
+						$target.data('resizableColumns').saveColumnWidths();
+					});
+				}
+
+				$(element).resizableColumns(options);
+			}
+		};
+	})
+	.directive('scrollToNew', function ($parse) {
+		return function(scope, element, attrs) {
+			if (scope.showIncomingRequests && scope.$last) {
+				var $container = $(element).parents('.data-container').first();
+				var $parent = $(element).parent();
+
+				$container.scrollTop($parent.height());
+			}
+		};
 	});

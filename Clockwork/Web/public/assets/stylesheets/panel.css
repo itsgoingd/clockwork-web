@@ -13,6 +13,22 @@ th, td {
 	text-align: left;
 }
 
+.toolbar {
+	padding: 2px 4px;
+	text-align: right;
+}
+
+.toolbar a {
+	color: rgb(105, 105, 105);
+	cursor: default;
+	font-size: 15px;
+	padding: 0 5px;
+}
+
+.toolbar a:hover {
+	color: rgb(59, 59, 59);
+}
+
 .split-view {
 	bottom: 0;
 	left: 0;
@@ -108,7 +124,15 @@ th, td {
 }
 
 .data-container tr {
-	height: 28px; 
+	height: 28px;
+}
+
+.data-container tr.sizing {
+	height: 0;
+}
+
+.data-container tr.sizing td {
+	padding: 0;
 }
 
 .data-container tr.filler {
@@ -130,6 +154,7 @@ th, td {
 
 .data-grid-requests th {
 	font-weight: normal;
+	overflow: hidden;
 }
 
 .data-grid-requests small {
@@ -143,7 +168,7 @@ th, td {
 }
 
 .data-grid-requests .selected td small {
-	color: white;	
+	color: white;
 }
 
 .data-grid-requests .method,
@@ -177,6 +202,40 @@ th, td {
 .data-grid-requests tr:nth-child(even) td.status,
 .data-grid-requests tr:nth-child(even) td.duration {
 	background: rgb(225, 225, 225);
+}
+
+.data-grid-requests .notificationsCount {
+    background: rgba(255, 255, 255, 0.8);
+	float: right;
+    height: 100%;
+    letter-spacing: -0.5px;
+    line-height: 29px;
+    padding-left: 4px;
+    padding-right: 4px;
+    position: relative;
+    right: -4px;
+}
+
+.data-grid-requests .selected .notificationsCount {
+	background: inherit;
+}
+
+.data-grid-requests .notificationsCount .errorsCount i {
+	color: rgb(205, 73, 46);
+	margin-left: 2px;
+}
+
+.data-grid-requests .selected .notificationsCount .errorsCount i {
+	color: #fff;
+}
+
+.data-grid-requests .notificationsCount .warningsCount i {
+	color: rgb(244, 189, 0);
+	margin-left: 2px;
+}
+
+.data-grid-requests .selected .notificationsCount .warningsCount i {
+	color: #fff;
 }
 
 /* request details */

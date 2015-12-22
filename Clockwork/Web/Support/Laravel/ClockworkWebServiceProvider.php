@@ -25,6 +25,10 @@ class ClockworkWebServiceProvider extends ServiceProvider
 			$this->app['router']->get('/__clockwork/app', 'Clockwork\Web\Support\Laravel\Controllers\CurrentController@render');
 			$this->app['router']->get('/__clockwork/{path}', 'Clockwork\Web\Support\Laravel\Controllers\CurrentController@renderAsset')->where('path', '.+');
 		}
+
+		$this->app['clockwork.web']->setCurrentRequestId($this->app['clockwork']->getRequest()->id);
+
+		$this->app['view']->share('clockwork_web', $this->app['clockwork.web']->getIframe());
 	}
 
 	public function register()
@@ -49,14 +53,6 @@ class ClockworkWebServiceProvider extends ServiceProvider
 		if (!$this->app['clockwork.web.support']->isEnabled()) {
 			return;
 		}
-
-		$app = $this->app;
-		$this->app['router']->before(function($request) use($app)
-		{
-			$app['clockwork.web']->setCurrentRequestId($app['clockwork']->getRequest()->id);
-
-			$app['view']->share('clockwork_web', $app['clockwork.web']->getIframe());
-		});
 	}
 
 	public function provides()

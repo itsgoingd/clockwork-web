@@ -1,3 +1,9 @@
+#### *Archived repository*
+
+*This repository contains the archived source of Clockwork Web, an embeddable web version of Clockwork Chrome 1. This feature is now part of the main Clockwork server-side library https://github.com/itsgoingd/clockwork.*
+
+---
+
 Clockwork
 =========
 
